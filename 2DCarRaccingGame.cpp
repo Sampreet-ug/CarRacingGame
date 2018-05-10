@@ -18,8 +18,8 @@ float mouseX ,mouseY ;
 GLint m_viewport[4];
 char uName[40],username[40];
 char highScore[100],ch,ch1;	
-char arrow[10]="--->";
-char copyUsername[10];
+//char arrow[10]="--->";
+//char copyUsername[10];
 
 
 void displayRasterText(float x ,float y ,float z ,char *stringToDisplay) {
