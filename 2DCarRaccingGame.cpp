@@ -15,7 +15,11 @@ int vehicleX = 200, vehicleY = 70;
 int ovehicleX[4], ovehicleY[4];
 int divx = 250, divy = 4, movd;
 float mouseX ,mouseY ;
-GLint m_viewport[4];	
+GLint m_viewport[4];
+char uName[40],username[40];
+char highScore[100],ch,ch1;	
+char arrow[10]="--->";
+char copyUsername[10];
 
 
 void displayRasterText(float x ,float y ,float z ,char *stringToDisplay) {
@@ -69,6 +73,70 @@ void passiveMotionFunc(int x,int y) {
 	mouseY = -(float(y)/(m_viewport[3]/700.0)-350.0);
 
 }
+
+void readFromFile() {
+
+	FILE *fp = fopen("HighScoreFile.txt" ,"r");
+	int i=0;
+	if(fp!= NULL){
+		while(fread(&ch,sizeof(char),1 ,fp)){
+			highScore[i++] = ch;
+		}
+		highScore[i] = '\0';
+	} 
+	fclose(fp);
+}
+void readFromUserFile(){
+	FILE *fp = fopen("UserName.txt","r");
+	int i=0;
+	if(fp!= NULL){
+		while(fread(&ch1,sizeof(char),1,fp)){
+			username[i++] = ch1;
+		}
+		username[i] = '\0';
+	}
+	fclose(fp);
+}
+
+void writeIntoFile() {						//To write high score on to file
+	FILE *fp = fopen("HighScoreFile.txt" ,"w");
+	int i=0;
+	char temp[40];
+	if(fp!= NULL){
+		int n= score;
+		while(n){
+			ch = (n%10)+ '0';
+			n/=10;
+			temp[i++] = ch;
+		}
+		temp[i] = '\0';
+		strrev(temp);		
+		//puts(temp);
+		if(temp[0] == '\0')
+			temp[i++] = '0' ,temp[i++] = '\0';
+		//strcat(uName,sign);
+		//strcat(uName,temp);
+		//fprintf(fptr,"%s", sentence);
+		fwrite(temp ,sizeof(char)*i ,i ,fp);
+	}
+ fclose(fp);
+}
+
+void writeIntoUnameFile() {						//To write high score on to file
+	FILE * fp;
+   int i;
+   /* open the file for writing*/
+   fp = fopen ("UserName.txt","w");
+ 
+   /* write 10 lines of text into the file stream*/
+       fwrite(uName, sizeof(uName),1,fp);
+ 
+   /* close the file*/  
+   fclose (fp);
+
+}
+
+
 void ovpos()
 {
     glClearColor(0,0,1,0);
@@ -197,9 +265,10 @@ void drawOVehicle()//other cars
     {
     	//printf("%d\t%d\t\t%d\t%d\t\t%d\t%d\n",ovehicleY[i],vehicleY - 25 - 25,ovehicleY[i],vehicleY + 25 + 25,ovehicleX[i],vehicleX);
         collide = true;
-    }
-     
-    if(ovehicleY[i] < -25)
+    
+		startgame=false;
+	}
+	if(ovehicleY[i] < -25)
     { 
         if(rand() % 2 == 0)
         {
@@ -211,7 +280,9 @@ void drawOVehicle()//other cars
         }
         ovehicleY[i] = 600; 
     } 
-    }
+    
+    
+	}
 }
 
 
@@ -254,9 +325,15 @@ void Normalkey(unsigned char key, int x, int y)
              screen=2;
              break;*/
     case 27:exit(0);
+    		break;
+    case 'q': //glClearColor(0,0,0,1);
+			  menuValue=true;
+    		  gameover=false;
+    		  startgame=false;
+    		  instructionsGame=false;
+			break;
     }
 } 
- 
  
 void init()
 {
@@ -293,7 +370,8 @@ void InstructionsScreenDisplay()
  void menuScreen()
  {
  		glLineWidth(1);
-
+	glClear(GL_COLOR_BUFFER_BIT);
+	glClearColor(0, 0 , 0, 1);
 	glColor3f(0,1,0);
 	glBegin(GL_POLYGON);				//START GAME PLOYGON
 		glVertex3f(250 - 100, 300,0.5);
@@ -335,6 +413,7 @@ void InstructionsScreenDisplay()
 	if(mouseX>=-250 && mouseX<=250 && mouseY>=-100 && mouseY<=40) {
 		glColor3f(1 ,1 ,1);
 		if(mButtonPressed){
+			startgame = false;
 			menuValue=false;
 			instructionsGame = true ;
 			mButtonPressed = false;
@@ -351,6 +430,7 @@ void InstructionsScreenDisplay()
 			gameQuit = true ;
 			menuValue=false;
 			mButtonPressed = false;
+			startgame = false;
 		}
 	}
 	else
@@ -364,9 +444,46 @@ void InstructionsScreenDisplay()
  	menuValue=false;
  	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
  	glClearColor(1, 0 , 0, 1);
+ 	char temp[40];
+	char c[1000];
+    FILE *fptr = fopen("HighScoreFile.txt", "r");
+
+    if (fptr == NULL)
+    {
+        printf("Error! opening file1");
+        // Program exits if file pointer returns NULL.
+        exit(1);         
+    }
+
+    // reads text until newline 
+    fscanf(fptr,"%s", c);
+	fclose(fptr);
+	sprintf(temp,"Score : %d",score);
+	displayRasterText(-100 ,340 ,0.4 ,temp);
+	readFromFile();            //read high score from the file*
+	readFromUserFile();
+	char temp2[40];
+	if(atoi(highScore) < score){         //set new high score*
+		writeIntoFile();
+		writeIntoUnameFile();           //write into user name file
+		sprintf(temp2 ,"Highest Score :%d" ,score);
+		printf("%d",score);
+	} else 
+		sprintf(temp2 ,"Highest Score :%s ---> %s",username,highScore);
+
+	displayRasterText(-250 ,400 ,0.4 ,temp2);
+
+     
+    
  	//glEnable(GL_DEPTH_TEST);
 	//glLoadIdentity();
 	glColor3f(255,0,0);
+	drawText("High Score : ",200,200);					//Display highscore after game over
+	drawText(username,270,200);
+	drawText(" ---> ",(275+strlen(username)+10),200);
+	drawText(highScore,320,200);
+	//itoa (highScore, buffer, 10);
+    //drawTextNum(buffer, 6, 420,455);
 	drawText("Game Over", 200,150);
 	glFlush();
 	glutSwapBuffers();
@@ -394,14 +511,14 @@ void InstructionsScreenDisplay()
     for(q = 0; q<= 10000000; q++){;}
     if(collide == true)
     {
-    	//printf("game over");
+    	//printf("Game Over");
     	//gameover= true;
-        //menuValue=true;
+        //menuValue=false;
 		//startgame=false;
 		//glColor3f(0,0,0);
     	//drawText("Game Over", 200,250);
-        GameOver();
-		glutSwapBuffers();
+		GameOver();
+		//glutSwapBuffers();
         //gets();
         //exit(0);
     }
@@ -441,7 +558,8 @@ void display()
 		glVertex3f(750 ,-500, 0.5);
 	glEnd();*/	
 	if(menuValue)
-	{
+	{	
+		startgame = false;
 		menuScreen();
 	}
 	else if(startgame)
@@ -451,12 +569,17 @@ void display()
 	}
 	else if(instructionsGame)
 	{
+		startgame = false;
 		menuValue=false;
 		InstructionsScreenDisplay();
 	}
 	else if(gameQuit)
 	{
 		exit(0);
+	}
+	else if(gameover)
+	{
+		GameOver();
 	}
     glFlush();  
 	glLoadIdentity();
@@ -475,6 +598,20 @@ void mouseClick(int buttonPressed ,int state ,int x, int y) {
  
 int main(int argc, char **argv)
 {
+ 	printf("Enter the name:");
+ 	gets(uName);
+	
+	 FILE *fp1 = fopen("HighScoreFile.txt" ,"r") ;      //check if HighScoreFile.txt exist if not create             
+	 if(fp1!=NULL)
+		fclose(fp1);
+	 else
+		 writeIntoFile(); 
+		 
+	 FILE *fp2 = fopen("UserName.txt" ,"r") ;      //check if UserName.txt exist if not create             
+	 if(fp2!=NULL)
+		fclose(fp2);
+	 else
+	 	printf("Hello");
     glutInit(&argc,argv);
     glutInitDisplayMode(GLUT_RGB|GLUT_DOUBLE);
     glutInitWindowPosition(100,100);
