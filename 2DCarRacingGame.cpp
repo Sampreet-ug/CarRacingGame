@@ -18,8 +18,8 @@ float mouseX ,mouseY ;
 GLint m_viewport[4];
 char uName[40],username[40];
 char highScore[100],ch,ch1;	
-//char arrow[10]="--->";
-//char copyUsername[10];
+char arrow[10]="--->";
+char copyUsername[10];
 
 
 void displayRasterText(float x ,float y ,float z ,char *stringToDisplay) {
@@ -443,7 +443,7 @@ void InstructionsScreenDisplay()
  	startgame=false;
  	menuValue=false;
  	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
- 	glClearColor(1, 0 , 0, 1);
+ 	glClearColor(0, 0 , 0, 1);
  	char temp[40];
 	char c[1000];
     FILE *fptr = fopen("HighScoreFile.txt", "r");
@@ -485,6 +485,7 @@ void InstructionsScreenDisplay()
 	//itoa (highScore, buffer, 10);
     //drawTextNum(buffer, 6, 420,455);
 	drawText("Game Over", 200,150);
+	glutIdleFunc(GameOver);
 	glFlush();
 	glutSwapBuffers();
  }
